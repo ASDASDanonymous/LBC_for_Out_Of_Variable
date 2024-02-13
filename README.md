@@ -1,13 +1,13 @@
 # Language-Based-Classifier-forOOV-Generalization
 
 #Abstract
-Large Language Models (LLMs) have performed well in many natural language process (NLP) tasks. Recently, LLMs have also been
-used to analyze tabular data. Although LLMs have had great success in natural language processing tasks such as text classification,
+Large Language Models (LLMs) have performed well in many natural language process (NLP) tasks. Recently, LLMs have also been
+used to analyze tabular data. Although LLMs have had great success in natural language processing tasks such as text classification,
 their use in tabular data classification has been limited due to their
 inferior performance compared to traditional machine learning
-models (TMLs) such as XGBoost. However, LLMs have the potential for tabular data classification tasks because they consider the
+models (TMLs) such as XGBoost. However, LLMs have the potential for tabular data classification tasks because they consider the
 context between variables based on pre-trained knowledge. This
-implies that LLMs can interpret the context of data that is typically difficult to learn due to the large number of missing values
+implies that LLMs can interpret the context of data that is typically difficult to learn due to the large number of missing values
 in tabular data or new variables not seen in training. We refer to
 classification tasks in these situations as out-of-variable (OOV)
 tasks. We propose a methodology called Language-Based-Classifier
