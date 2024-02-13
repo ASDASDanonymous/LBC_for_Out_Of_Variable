@@ -6,7 +6,8 @@ Large Language Models (LLMs) have shown remarkable performance in various Natura
 
 We propose a methodology named Language-Based Classifier (LBC), which uniquely addresses the OOV tasks in tabular data classification, distinguishing itself from TMLs. LBC capitalizes on its ability to handle OOV tasks through a novel approach to tabular data classification. This approach involves converting tabular data into natural language prompts, allowing LBC to seamlessly and intuitively manage OOVs for inference. Moreover, the interpretation of OOVs using LBC's pre-trained knowledge base aids in increasing the likelihood of correctly classifying the answer class. Employing three key methodological strategies — Categorical Changes to adjust data for better model comprehension, Advanced Order and Indicator to enhance data representation, and the use of a Verbalizer to map logit scores to classes during inference — LBC emphasizes its capability to effectively tackle OOV tasks. We empirically and theoretically demonstrate the superiority of LBC, marking it as the first study to apply an LLM-based model to OOV tasks.
 
-![LBC Methodology Overview](path/to/your/image.jpg)
+![LBC Methodology Overview](Language-Based-Classifier-forOOV-Generalization
+/Method_pic.png)
 
 *Figure 1: Overview of the Language-Based Classifier (LBC) methodology.*
 
