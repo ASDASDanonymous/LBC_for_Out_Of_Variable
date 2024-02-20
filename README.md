@@ -7,3 +7,6 @@ Large Language Models (LLMs) have performed well in many natural language proces
 ![LBC Method Overview](main.png)
 
 *Figure 1: Overview of the Language-Based Classifier (LBC) methodology.*
+
+This project includes code that is licensed under the MIT License by the following copyright holders:
+Copyright (c) 2022 UWLeeLab Tuan Dinh Yuchen Zeng
