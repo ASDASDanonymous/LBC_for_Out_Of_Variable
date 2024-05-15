@@ -1,16 +1,17 @@
 import os
-from typing import List
+import pdb
+from typing import List, Tuple
 import numpy as np
 from functools import partial
 import pandas as pd
 import random
 import sys
 
-from utils.dictionary import DatasetLike
+from dictionary import DatasetLike
 
 sys.path.append('')
 
-def data2text_feature_name_Creditcard(row, train_quartiles, test_quartiles, mode='train'):
+def data2text_feature_name_Creditcard(row, train_quartiles, test_quartiles, mode='train', icl=False):
     quartiles = train_quartiles if mode == 'train' else test_quartiles
 
     prompt = ''
@@ -42,7 +43,7 @@ def data2text_feature_name_Creditcard(row, train_quartiles, test_quartiles, mode
 
     prompt += "Trained Information: The applicant "
     
-    print(quartiles)
+    # print(quartiles)
 
     age_quartile_1 = quartiles.iloc[0, 1]
     age_quartile_3 = quartiles.iloc[2, 1]
@@ -95,17 +96,21 @@ def data2text_feature_name_Creditcard(row, train_quartiles, test_quartiles, mode
 
     if row[13] is not None:
         prompt += f"and resides in the zip code {row[13]}. "
-
-    prompt += "Can the bank give this person a credit card?"
-
-    completion = "Yes" if row['y'] == 1 else "No"
         
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    if not icl:
+
+        prompt += "Can the bank give this person a credit card?"
+
+        completion = "Yes" if row['y'] == 1 else "No"
+            
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    
+    return prompt + f'''and the bank {"can" if row["y"] == 1 else "can"+ "'" +"t"} give this person a credit card.'''
 
 
 
 
-def data2text_feature_name_Loan(row, train_quartiles, test_quartiles, mode='train'):
+def data2text_feature_name_Loan(row, train_quartiles, test_quartiles, mode='train', icl=False):
    
     quartiles = train_quartiles if mode == 'train' else test_quartiles
 
@@ -174,15 +179,18 @@ def data2text_feature_name_Loan(row, train_quartiles, test_quartiles, mode='trai
     if row[11] is not None:
         prompt += f"this person's property area is {row[11]}. "
     
-    prompt += "Should the bank give this person a loan? "
+    if not icl:
+        prompt += "Should the bank give this person a loan? "
 
-    completion = 'Yes' if str(row['y']) == '1' else "No"
-        
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+        completion = 'Yes' if str(row['y']) == '1' else "No"
+            
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    
+    return prompt + f'''and the bank should{"" if str(row['y']) == '1' else " not"} give this person a loan.'''
 
 
 
-def data2text_feature_name_Steel_Plate(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
+def data2text_feature_name_Steel_Plate(row, cols, train_quartiles, test_quartiles, categorical, mode='train', icl=False):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
 
@@ -219,174 +227,175 @@ def data2text_feature_name_Steel_Plate(row, cols, train_quartiles, test_quartile
             if feature_value is not None:
                 prompt += f"{feature_names[col]} is {feature_value}, "
     
-    prompt += "Is this steel plate defective?"
+    if not icl:
+        prompt += "Is this steel plate defective?"
 
-    completion = "No" if row["y"] == 0 else "Yes"
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
     
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    return prompt + f'''and this steel plate is {"" if row['y'] == 1 else " not"} defective.'''
 
 
-def data2text_feature_name_Blood(row, cols, train_quartiles, test_quartiles, categorical, morde='train'):
+def data2text_feature_name_Blood(row, cols, train_quartiles, test_quartiles, categorical, morde='train', icl=False):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
     
     #write prompt components
     prompt = ''
 
-    completion = "No" if row["y"] == 0 else "Yes"
+    if not icl:
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
     
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    return prompt + "DESCRIPTION OF ANSWER HERE, WHICH IS USED TO ICL EXAMPLE."
 
-def data2text_feature_name_Breast_Cancer(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
+def data2text_feature_name_Breast_Cancer(row, cols, train_quartiles, test_quartiles, categorical, mode='train', icl=False):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
     
     #write prompt components
     prompt = ''
 
-    completion = "No" if row["y"] == 0 else "Yes"
-    
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    if not icl:
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+        
+    return prompt + "DESCRIPTION OF ANSWER HERE, WHICH IS USED TO ICL EXAMPLE."
 
-def data2text_feature_name_German(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
+def data2text_feature_name_German(row, cols, train_quartiles, test_quartiles, categorical, mode='train', icl=False):
+
+    quartiles = train_quartiles if mode == 'train' else test_quartiles
+    
+    #write prompt components
+    prompt = ''
+    
+    if not icl:
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    
+    return prompt + "DESCRIPTION OF ANSWER HERE, WHICH IS USED TO ICL EXAMPLE."
+
+def data2text_feature_name_ILPD(row, cols, train_quartiles, test_quartiles, categorical, mode='train', icl=False):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
     
     #write prompt components
     prompt = ''
 
-    completion = "No" if row["y"] == 0 else "Yes"
+    if not icl:
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
     
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    return prompt + "DESCRIPTION OF ANSWER HERE, WHICH IS USED TO ICL EXAMPLE."
 
-def data2text_feature_name_ILPD(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
+def data2text_feature_name_Salary(row, cols, train_quartiles, test_quartiles, categorical, mode='train', icl=False):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
     
     #write prompt components
     prompt = ''
 
-    completion = "No" if row["y"] == 0 else "Yes"
-    
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    if not icl:
+        completion = "No" if row["y"] == 0 else "Yes"
+        
+        return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
 
-def data2text_feature_name_Salary(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
-
-    quartiles = train_quartiles if mode == 'train' else test_quartiles
-    
-    #write prompt components
-    prompt = ''
-
-    completion = "No" if row["y"] == 0 else "Yes"
-    
-    return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
+    return prompt + "DESCRIPTION OF ANSWER HERE, WHICH IS USED TO ICL EXAMPLE."
 
 def df2jsonl_feat_name(df:pd.DataFrame, filename:str, did:DatasetLike, train_quartiles:pd.DataFrame, test_quartiles:pd.DataFrame, integer:bool = False):
     fpath = os.path.join(os.path.dirname(__file__), '..', 'data', filename)
 
     if did == 'Blood':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
     
     if did == 'Breast_Cancer':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
     
     if did == 'Creditcard':
         # jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Creditcard, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
     
     elif did == 'German':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
 
     elif did == 'ILPD':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
 
     elif did == 'Loan':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
     
     elif did == 'Salary':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
     
     elif did == 'Steel_Plate':
         jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
 
-    else:
-        raise NotImplementedError
+    else: raise NotImplementedError
+    
+    with open(fpath, 'w') as f:
+        f.write(jsonl)
+    return fpath
     
 def df2jsonl_feat_name_icl(df:pd.DataFrame, filename:str, did:DatasetLike, train_quartiles:pd.DataFrame, test_quartiles:pd.DataFrame, integer:bool = False):
     fpath = os.path.join(os.path.dirname(__file__), '..', 'data', filename)
     
-    results:List[str]
+    labels:List[bool] = (df['y'] == 1).tolist()
+    def get_partitions(results:List[str])->Tuple[List[str], List[str]]:
+        def p(label): return [result for i, result in enumerate(results) if labels[i]==label]
+        return p(0), p(1)
+    
+    icl_examples:List[str]
     if did == 'Blood':
-        results = df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     
     if did == 'Breast_Cancer':
-        results = df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     
     if did == 'Creditcard':
-        results = df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     
     elif did == 'German':
-        results = df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
 
     elif did == 'ILPD':
-        results = df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
 
     elif did == 'Loan':
-        results = df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     
     elif did == 'Salary':
-        results = df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
+        test_prompts = df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     
     elif did == 'Steel_Plate':
-        results = df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
-        with open(fpath, 'w') as f:
-            f.write(jsonl)
-        return fpath
-
+        test_prompts = df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist() # type: ignore
+        icl_examples = df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles, icl=True), axis = 1).tolist() # type: ignore
     else:
         raise NotImplementedError
+    
+    partition_neg, partition_pos = get_partitions(icl_examples)
+    jsonl = []
+    for test_prompt in test_prompts:
+        icl_neg = random.sample(partition_neg, k=21)
+        icl_pos = random.sample(partition_pos, k=21)
+        if test_prompt in icl_neg: icl_neg.pop(icl_neg.index(test_prompt))
+        else: icl_neg = icl_neg[:-1]
+        if test_prompt in icl_pos: icl_pos.pop(icl_pos.index(test_prompt))
+        else: icl_pos = icl_pos[:-1]
+        icl_prompt = "{" + f"\"examples\":\"{' '.join(icl_neg+icl_pos)}\"" + "}"
+        jsonl.append(icl_prompt[:-1] + ',' +  test_prompt[1:]) # Concatenate json format, deleting '}{' in  'examples...}{...test prompt'
+    jsonl = '\n'.join(jsonl)
+    with open(fpath, 'w') as f:
+        f.write(jsonl)
+    return fpath

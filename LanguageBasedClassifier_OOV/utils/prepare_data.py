@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import List
 sys.path.append("./../")
 import numpy as np
 # from baselines import clf_model
@@ -59,13 +60,13 @@ def prepare_data(did, OOV):
     np.save(os.path.join(os.path.dirname(__file__), f'../data/{did}'), data_i)
 
     train_df, val_df, test_df = pd.DataFrame(X_raw_train), pd.DataFrame(X_raw_val), pd.DataFrame(X_raw_test)
-    def get_quantiles(df:pd.DataFrame):
-        QUANTILES = (0.25, 0.5, 0.75)
+    def get_quartiles(df:pd.DataFrame):
+        QUARTILES = (0.25, 0.5, 0.75)
         qdf = df.copy()
         cols = []
         for idx_column in range(qdf.shape[1]):
             if qdf.iloc[:,idx_column].dtype != 'object':
-                cols.append(qdf.iloc[:,idx_column].quantile(QUANTILES))
+                cols.append(qdf.iloc[:,idx_column].quantile(QUARTILES))
             else:
                 cols.append([pd.NA, pd.NA, pd.NA])
         return qdf
@@ -73,8 +74,8 @@ def prepare_data(did, OOV):
     train_df = train_df.apply(pd.to_numeric, errors='ignore')
     val_df = val_df.apply(pd.to_numeric, errors='ignore')
     test_df = test_df.apply(pd.to_numeric, errors='ignore')
-    train_quartiles = get_quantiles(train_df)
-    test_quartiles = get_quantiles(test_df)
+    train_quartiles = get_quartiles(train_df)
+    test_quartiles = get_quartiles(test_df)
     #Choose OOV and remove selected OOV in train data
     
     n_cols = X_raw_train.shape[1]
@@ -100,7 +101,8 @@ def prepare_data(did, OOV):
     df2jsonl_func = df2jsonl_feat_name_icl if icl else df2jsonl_feat_name
     
     for mode in ['train', 'val', 'test']:
-        json_name = f'{fname}_{mode}_feature_names.jsonl'
+        fname_prefixes:List[str] = [fname, mode, str(icl)]
+        json_name = '_'.join(fname_prefixes + ["feature_names.jsonl"])
         jsonl_files[mode] = df2jsonl_func(dfs[mode], json_name, did, train_quartiles, test_quartiles)
         # if did == 'Blood':
         #     json_name = f'{fname}_{mode}_feature_names.jsonl'
