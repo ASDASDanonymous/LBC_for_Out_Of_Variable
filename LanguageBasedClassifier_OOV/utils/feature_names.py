@@ -1,9 +1,12 @@
 import os
+from typing import List
 import numpy as np
 from functools import partial
 import pandas as pd
 import random
 import sys
+
+from utils.dictionary import DatasetLike
 
 sys.path.append('')
 
@@ -38,6 +41,8 @@ def data2text_feature_name_Creditcard(row, train_quartiles, test_quartiles, mode
                 prompt += "has been employed for a long duration, "
 
     prompt += "Trained Information: The applicant "
+    
+    print(quartiles)
 
     age_quartile_1 = quartiles.iloc[0, 1]
     age_quartile_3 = quartiles.iloc[2, 1]
@@ -221,7 +226,7 @@ def data2text_feature_name_Steel_Plate(row, cols, train_quartiles, test_quartile
     return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
 
 
-def data2text_feature_name_Blood(row, cols, train_quartiles, test_quartiles, categorical, mode='train'):
+def data2text_feature_name_Blood(row, cols, train_quartiles, test_quartiles, categorical, morde='train'):
 
     quartiles = train_quartiles if mode == 'train' else test_quartiles
     
@@ -276,53 +281,109 @@ def data2text_feature_name_Salary(row, cols, train_quartiles, test_quartiles, ca
     
     return "{\"prompt\":\"%s###\", \"completion\":\"%s@@@\"}" % (prompt, completion)
 
-def df2jsonl_feat_name(df, filename, did, train_quartiles, test_quartiles, integer = False):
-    fpath = os.path.join('.../data', filename)
+def df2jsonl_feat_name(df:pd.DataFrame, filename:str, did:DatasetLike, train_quartiles:pd.DataFrame, test_quartiles:pd.DataFrame, integer:bool = False):
+    fpath = os.path.join(os.path.dirname(__file__), '..', 'data', filename)
 
     if did == 'Blood':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
     
     if did == 'Breast_Cancer':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
     
     if did == 'Creditcard':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Creditcard, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        # jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Creditcard, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
     
     elif did == 'German':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
 
     elif did == 'ILPD':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
 
     elif did == 'Loan':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Loan, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
     
     elif did == 'Salary':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath
     
     elif did == 'Steel_Plate':
-        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist())
+        jsonl = '\n'.join(df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()) # type: ignore
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+
+    else:
+        raise NotImplementedError
+    
+def df2jsonl_feat_name_icl(df:pd.DataFrame, filename:str, did:DatasetLike, train_quartiles:pd.DataFrame, test_quartiles:pd.DataFrame, integer:bool = False):
+    fpath = os.path.join(os.path.dirname(__file__), '..', 'data', filename)
+    
+    results:List[str]
+    if did == 'Blood':
+        results = df.apply(func = partial(data2text_feature_name_Blood, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+    
+    if did == 'Breast_Cancer':
+        results = df.apply(func = partial(data2text_feature_name_Breast_Cancer, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+    
+    if did == 'Creditcard':
+        results = df.apply(func = partial(data2text_feature_name_Creditcard, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+    
+    elif did == 'German':
+        results = df.apply(func = partial(data2text_feature_name_German, cols=list(df.columns), train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+
+    elif did == 'ILPD':
+        results = df.apply(func = partial(data2text_feature_name_ILPD, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+
+    elif did == 'Loan':
+        results = df.apply(func = partial(data2text_feature_name_Loan, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+    
+    elif did == 'Salary':
+        results = df.apply(func = partial(data2text_feature_name_Salary, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
+        with open(fpath, 'w') as f:
+            f.write(jsonl)
+        return fpath
+    
+    elif did == 'Steel_Plate':
+        results = df.apply(func = partial(data2text_feature_name_Steel_Plate, cols=list(df.columns), categorical = True, train_quartiles = train_quartiles, test_quartiles = test_quartiles), axis = 1).tolist()
         with open(fpath, 'w') as f:
             f.write(jsonl)
         return fpath

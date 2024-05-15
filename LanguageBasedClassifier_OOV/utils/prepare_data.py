@@ -1,12 +1,13 @@
+import os
 import sys
 sys.path.append("./../")
 import numpy as np
 # from baselines import clf_model
-import utils.configs as cfgs
-from utils.helper import log
-from utils.classification_data_generator import DataGenerator, dfprocessing
+import configs as cfgs
+from helper import log
+from classification_data_generator import DataGenerator, dfprocessing
 from sklearn.model_selection import StratifiedShuffleSplit
-from utils.feature_names import df2jsonl_feat_name
+from feature_names import df2jsonl_feat_name, df2jsonl_feat_name_icl
 import warnings
 warnings.filterwarnings("ignore")
 import pandas as pd
@@ -38,7 +39,7 @@ def prepare_data(did, OOV):
     # data = {'y_train': y_train, 'y_val': y_val, 'y_test': y_test, 'X_raw_train': X_raw_train, 'X_raw_test': X_raw_test, 'X_raw_val': X_raw_val, 'X_norm_test': X_norm_test, 'X_norm_val': X_norm_val, 'X_norm_train': X_norm_train, 'att_names': att_names}
     data = {'y_dev': y_dev, 'y_test': y_test, 'X_raw_dev': X_raw_dev, 'X_raw_test': X_raw_test, 'X_norm_test': X_norm_test, 'X_norm_dev': X_norm_dev}
    
-    np.save(f'.../data/{did}_dev_test_split', data)
+    np.save(os.path.join(os.path.dirname(__file__),f'../data/{did}_dev_test_split'), data)
 
     # convert to prompt
     count = 0
@@ -55,11 +56,25 @@ def prepare_data(did, OOV):
     data_i = {'y_train': y_train, 'y_val': y_val, 'y_test': y_test, 'X_raw_train': X_raw_train, 'X_raw_test': X_raw_test,
         'X_raw_val': X_raw_val, 'X_norm_test': X_norm_test, 'X_norm_val': X_norm_val, 'X_norm_train': X_norm_train, 'att_names': att_names}
 
-    np.save(f'.../data/{did}', data_i)
+    np.save(os.path.join(os.path.dirname(__file__), f'../data/{did}'), data_i)
 
     train_df, val_df, test_df = pd.DataFrame(X_raw_train), pd.DataFrame(X_raw_val), pd.DataFrame(X_raw_test)
-    train_quartiles = train_df.quantile([0.25, 0.5, 0.75])
-    test_quartiles = test_df.quantile([0.25, 0.5, 0.75])
+    def get_quantiles(df:pd.DataFrame):
+        QUANTILES = (0.25, 0.5, 0.75)
+        qdf = df.copy()
+        cols = []
+        for idx_column in range(qdf.shape[1]):
+            if qdf.iloc[:,idx_column].dtype != 'object':
+                cols.append(qdf.iloc[:,idx_column].quantile(QUANTILES))
+            else:
+                cols.append([pd.NA, pd.NA, pd.NA])
+        return qdf
+    
+    train_df = train_df.apply(pd.to_numeric, errors='ignore')
+    val_df = val_df.apply(pd.to_numeric, errors='ignore')
+    test_df = test_df.apply(pd.to_numeric, errors='ignore')
+    train_quartiles = get_quantiles(train_df)
+    test_quartiles = get_quantiles(test_df)
     #Choose OOV and remove selected OOV in train data
     
     n_cols = X_raw_train.shape[1]
@@ -76,38 +91,43 @@ def prepare_data(did, OOV):
     train_df['y'], val_df['y'], test_df['y'] = y_train, y_val, y_test
     dfs = {'train': train_df, 'val': val_df, 'test': test_df}
 
-    target_names = att_names[-1] if did > 10 else None
-    feature_names = att_names[:-1] if did > 10 else None
+    # target_names = att_names[-1] if did > 10 else None
+    # feature_names = att_names[:-1] if did > 10 else None
     fname = f"{did}"
     jsonl_files = {}
-    for mode in ['train', 'val', 'test']:           
-        if did == 'Blood':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did, train_quartiles, test_quartiles)
-        elif did == 'Breast_Cancer':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did, train_quartiles, test_quartiles)    
-        elif did == 'Creditcard':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
-        elif did == 'German':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
-        elif did == 'ILPD':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
-        elif did == 'Loan':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
-        elif did == 'Salary':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
-        elif did == 'Steel_Plate':
-            json_name = f'{fname}_{mode}_feature_names.jsonl'
-            jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+    icl = True
+    
+    df2jsonl_func = df2jsonl_feat_name_icl if icl else df2jsonl_feat_name
+    
+    for mode in ['train', 'val', 'test']:
+        json_name = f'{fname}_{mode}_feature_names.jsonl'
+        jsonl_files[mode] = df2jsonl_func(dfs[mode], json_name, did, train_quartiles, test_quartiles)
+        # if did == 'Blood':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did, train_quartiles, test_quartiles)
+        # elif did == 'Breast_Cancer':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did, train_quartiles, test_quartiles)    
+        # elif did == 'Creditcard':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+        # elif did == 'German':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+        # elif did == 'ILPD':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+        # elif did == 'Loan':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+        # elif did == 'Salary':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
+        # elif did == 'Steel_Plate':
+        #     json_name = f'{fname}_{mode}_feature_names.jsonl'
+        #     jsonl_files[mode] = df2jsonl_feat_name(dfs[mode], json_name, did,train_quartiles, test_quartiles)
 
     print('Done', did)
-
 
 if __name__ == '__main__':
     for did in ['Creditcard', 'Loan', 'Steel_Plate']:
