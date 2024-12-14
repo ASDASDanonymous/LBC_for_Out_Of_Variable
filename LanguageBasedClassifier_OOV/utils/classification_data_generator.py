@@ -13,7 +13,7 @@ import openai, openml
 from einops import rearrange, repeat
 from scipy.io import arff
 
-from utils import configs as cfgs
+import configs as cfgs
 
 def data_split(X, y):
 	if len(set(y)) == 2:
@@ -34,8 +34,8 @@ from scipy.io import arff
 import os
 
 def origin2df(dataname):
-    base_path = '.../origin_dataset/'
-    file_path = f'{base_path}{dataname}'
+    base_path = os.path.join(os.path.dirname(__file__), '..', 'origin_dataset')
+    file_path = os.path.join(base_path,dataname)
 
     if os.path.exists(file_path + '.arff'):
         path = file_path + '.arff'
@@ -45,6 +45,8 @@ def origin2df(dataname):
         path = file_path + '.csv'
         df = pd.read_csv(path)
     else:
+        print(os.path.abspath(file_path))
+        print(file_path)
         raise FileNotFoundError(f"No file found for {dataname} with .arff or .csv extension.")
 
     df.dropna(how='any', inplace=True)
